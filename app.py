@@ -13,6 +13,9 @@ app.secret_key = os.environ.get('SECRET_KEY', 'osi_stress_2024_secure')
 # Set DATABASE_URL environment variable on Render/Supabase like:
 # postgresql://user:password@host:5432/dbname
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
+# Fix for Render — psycopg2 needs postgresql:// not postgres://
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
 def get_db():
     """Get a new DB connection. psycopg2 is not thread-safe so we open per-request."""
@@ -20,6 +23,9 @@ def get_db():
         raise RuntimeError("DATABASE_URL environment variable not set.")
     conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
     return conn
+ 
+
+
 
 def init_db():
     """Create tables if they don't exist. Called once at startup."""
